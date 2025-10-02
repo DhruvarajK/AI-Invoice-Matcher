@@ -1,0 +1,246 @@
+import os
+import shutil
+import json
+from datetime import datetime
+from fastapi import FastAPI, File, UploadFile, HTTPException,Request
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+import pytesseract
+from PIL import Image
+import PyPDF2
+from openai import OpenAI
+import logging
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from dotenv import load_dotenv
+
+load_dotenv()
+
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
+UPLOAD_FOLDER = "uploads"
+DATABASE_FILE = "database.json"
+
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+app = FastAPI()
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+if not os.path.exists(DATABASE_FILE):
+    with open(DATABASE_FILE, "w") as f:
+        json.dump([], f)
+
+# setting up the connection to the ai model through openrouter
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=OPENROUTER_API_KEY,
+)
+
+
+class ComparisonResult(BaseModel):
+    status: str
+    message: str
+    details: dict
+
+def save_upload_file(upload_file: UploadFile, destination: str) -> None:   # this just takes the uploaded file and saves it to our server
+  
+    try:
+        with open(destination, "wb") as buffer:
+            shutil.copyfileobj(upload_file.file, buffer)
+    except IOError as e:
+        logging.error(f"Error saving file {upload_file.filename}: {e}")
+        raise HTTPException(status_code=500, detail=f"Could not save file: {upload_file.filename}")
+    finally:
+        # closing the file 
+        upload_file.file.close()
+
+def extract_text_from_image(file_path: str) -> str:
+    # it uses tesseract to 'read' the text out of a picture
+    try:
+        with Image.open(file_path) as img:
+            text = pytesseract.image_to_string(img)
+            return text
+    except Exception as e:
+        logging.error(f"Error during OCR for {file_path}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to perform OCR on image: {os.path.basename(file_path)}")
+
+def extract_text_from_pdf(file_path: str) -> str:
+    # pulls text from a pdf file, but only if it's real text
+    try:
+        text = ""
+        with open(file_path, "rb") as file:
+            reader = PyPDF2.PdfReader(file)
+            # loop through all the pages and grab the text from each one
+            for page in reader.pages:
+                text += page.extract_text() or ""
+        return text
+    except Exception as e:
+        logging.error(f"Error extracting text from PDF {file_path}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to extract text from PDF: {os.path.basename(file_path)}")
+
+def get_text_from_file(file_path: str, filename: str) -> str:
+    # it checks the file extension to see what kind of file it is
+    extension = os.path.splitext(filename)[1].lower()
+    # then sends it to the right function to get the text out
+    if extension in ['.png', '.jpg', '.jpeg', '.bmp', '.tiff']:
+        return extract_text_from_image(file_path)
+    elif extension == '.pdf':
+        return extract_text_from_pdf(file_path)
+    else:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: {extension}")
+
+def analyze_documents_with_ai(invoice_text: str, po_text: str) -> dict:
+    # telling it exactly what to look for and how to format the answer
+    prompt = f"""
+    You are an expert financial analyst AI. Your task is to perform a 3-way match between an invoice and a purchase order.
+    Extract the key information from both documents, compare them, and provide a clear result.
+
+    **Invoice Text:**
+    ---
+    {invoice_text}
+    ---
+
+    **Purchase Order Text:**
+    ---
+    {po_text}
+    ---
+
+    **Instructions:**
+    1.  **Extract Key Information:** From both texts, identify and extract the following fields:
+        * Invoice Number (from invoice)
+        * PO Number (from purchase order)
+        * Vendor Name
+        * Total Amount
+        * A list of line items with their prices.
+
+    2.  **Compare the Information:**
+        * Does the Vendor Name match?
+        * Does the Total Amount match?
+        * Do the line items (names and prices) match between the two documents?
+
+    3.  **Provide a JSON Output:** Your response MUST be in a valid JSON format. Do not add any text before or after the JSON block.
+        The JSON should have the following structure:
+        {{
+            "invoice_number": "...",
+            "po_number": "...",
+            "vendor_match": {{
+                "match": boolean,
+                "invoice_vendor": "...",
+                "po_vendor": "..."
+            }},
+            "total_amount_match": {{
+                "match": boolean,
+                "invoice_total": "...",
+                "po_total": "...",
+                "difference": "..."
+            }},
+            "items_match": {{
+                "match": boolean,
+                "details": "A brief explanation of item matching status (e.g., 'All items and prices match perfectly.', 'Mismatch found in item X price.')"
+            }},
+            "overall_status": "APPROVED" | "NEEDS REVIEW",
+            "summary": "A concise, one-sentence summary of the findings."
+        }}
+
+    Analyze the provided texts and generate the JSON output.
+    """
+    try:
+        # sending the texts and our instructions to the model
+        completion = client.chat.completions.create(
+            model="qwen/qwen-2.5-72b-instruct", 
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that provides responses in valid JSON format."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.1, 
+            ## json response
+            response_format={"type": "json_object"} 
+        )
+        response_content = completion.choices[0].message.content
+        # the ai gives us back a string of text, so we need to convert it into a python dictionary
+        return json.loads(response_content)
+    except Exception as e:
+        logging.error(f"Error communicating with AI model: {e}")
+        raise HTTPException(status_code=500, detail="Failed to analyze documents with AI.")
+
+def save_result(invoice_filename: str, po_filename: str, result: dict):
+    #  function to saves the models analysis into our json file
+    try:
+        with open(DATABASE_FILE, "r+") as f:
+            db_data = json.load(f)
+            new_entry = {
+                "id": len(db_data) + 1,
+                "timestamp": datetime.now().isoformat(),
+                "invoice_file": invoice_filename,
+                "po_file": po_filename,
+                "result": result
+            }
+            # add the new entry to the list
+            db_data.append(new_entry)
+            # gotta go back to the start of the file to overwrite it with the new data
+            f.seek(0)
+            json.dump(db_data, f, indent=4)
+    except (IOError, json.JSONDecodeError) as e:
+        logging.error(f"Error saving result to database: {e}")
+
+
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/")
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.post("/compare")
+async def compare_documents(invoice_file: UploadFile = File(...), po_file: UploadFile = File(...)):
+    if not invoice_file.filename or not po_file.filename:
+        raise HTTPException(status_code=400, detail="Both invoice and purchase order files must be provided.")
+
+    # giving the files unique names based on the time 
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    invoice_filename = f"{timestamp}_invoice_{invoice_file.filename}"
+    po_filename = f"{timestamp}_po_{po_file.filename}"
+    invoice_path = os.path.join(UPLOAD_FOLDER, invoice_filename)
+    po_path = os.path.join(UPLOAD_FOLDER, po_filename)
+
+    # save the files to the server
+    save_upload_file(invoice_file, invoice_path)
+    save_upload_file(po_file, po_path)
+    try:
+        invoice_text = get_text_from_file(invoice_path, invoice_filename)
+        po_text = get_text_from_file(po_path, po_filename)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logging.error(f"An unexpected error occurred during text extraction: {e}")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+    if not invoice_text.strip() or not po_text.strip():
+        raise HTTPException(status_code=400, detail="Could not extract text from one or both documents. The files might be empty, scanned images of poor quality, or corrupted.")
+
+    # sending the extracted text to the ai for analysis
+    analysis_result = analyze_documents_with_ai(invoice_text, po_text)
+
+    # save the result
+    save_result(invoice_filename, po_filename, analysis_result)
+
+    # sending analysis back to the user
+    return JSONResponse(content=analysis_result)
+
+
+@app.get("/history")
+async def get_history():
+    try:
+        with open(DATABASE_FILE, "r") as f:
+            history_data = json.load(f)
+            # show the newest ones first
+            return JSONResponse(content=sorted(history_data, key=lambda x: x['timestamp'], reverse=True))
+    except (IOError, json.JSONDecodeError):
+        return JSONResponse(content=[], status_code=500)
+    
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

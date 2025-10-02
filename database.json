@@ -1,0 +1,353 @@
+[
+    {
+        "id": 1,
+        "timestamp": "2025-10-02T11:03:23.324059",
+        "invoice_file": "20251002_110315_invoice_gulf-tech-invoice.pdf",
+        "po_file": "20251002_110315_po_sabic-po.pdf",
+        "result": {
+            "invoice_number": "GTS-2025-002",
+            "po_number": "SABIC-PO-2025-205",
+            "vendor_match": {
+                "match": true,
+                "invoice_vendor": "GulfT ech Systems",
+                "po_vendor": "GulfT ech Systems"
+            },
+            "total_amount_match": {
+                "match": true,
+                "invoice_total": "60599.25SAR",
+                "po_total": "60599.25SAR",
+                "difference": "0.00SAR"
+            },
+            "items_match": {
+                "match": true,
+                "details": "All items and prices match perfectly."
+            },
+            "overall_status": "APPROVED",
+            "summary": "All vendor details, total amounts, and line items match perfectly between the invoice and purchase order."
+        }
+    },
+    {
+        "id": 2,
+        "timestamp": "2025-10-02T11:04:12.925466",
+        "invoice_file": "20251002_110404_invoice_gulf-tech-invoice.pdf",
+        "po_file": "20251002_110404_po_aramco-po.pdf",
+        "result": {
+            "invoice_number": "GTS-2025-002",
+            "po_number": "ARAMCO-PO-2025-412",
+            "vendor_match": {
+                "match": false,
+                "invoice_vendor": "GulfT ech Systems",
+                "po_vendor": "Red Se a Logistics & T rading"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "60599.25",
+                "po_total": "103718.50",
+                "difference": "43119.25"
+            },
+            "items_match": {
+                "match": false,
+                "details": "Mismatch found in item quantities and prices. The invoice and PO have different items and quantities, and the PO includes an additional item (Switchgear Panel DN80) not present in the invoice."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "Vendor names, total amounts, and item details do not match between the invoice and purchase order."
+        }
+    },
+    {
+        "id": 3,
+        "timestamp": "2025-10-02T12:31:02.432501",
+        "invoice_file": "20251002_123051_invoice_gulf-tech-invoice.pdf",
+        "po_file": "20251002_123051_po_almarai-po.pdf",
+        "result": {
+            "invoice_number": "GTS-2025-002",
+            "po_number": "ALMARAI-PO-2025-307",
+            "vendor_match": {
+                "match": false,
+                "invoice_vendor": "GulfT ech Systems",
+                "po_vendor": "Horizon Industrial Equipment"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "60599.25SAR",
+                "po_total": "80068.75SAR",
+                "difference": "19469.50SAR"
+            },
+            "items_match": {
+                "match": false,
+                "details": "Mismatch found in item quantities and prices. The invoice and PO have different items and quantities for several line items."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "The vendor names, total amounts, and line items do not match between the invoice and purchase order, requiring further review."
+        }
+    },
+    {
+        "id": 4,
+        "timestamp": "2025-10-02T12:31:41.420312",
+        "invoice_file": "20251002_123127_invoice_gulf-tech-invoice.pdf",
+        "po_file": "20251002_123127_po_aramco-po.pdf",
+        "result": {
+            "invoice_number": "GTS-2025-002",
+            "po_number": "ARAMCO-PO-2025-412",
+            "vendor_match": {
+                "match": false,
+                "invoice_vendor": "GulfT ech Systems",
+                "po_vendor": "Red Se a Logistics & T rading"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "60599.25SAR",
+                "po_total": "103718.50SAR",
+                "difference": "43119.25SAR"
+            },
+            "items_match": {
+                "match": false,
+                "details": "Mismatch found in item quantities, prices, and total amounts. The invoice and PO have different line items and quantities."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "The vendor names, total amounts, and line items do not match between the invoice and the purchase order, requiring further review."
+        }
+    },
+    {
+        "id": 5,
+        "timestamp": "2025-10-02T12:31:57.510937",
+        "invoice_file": "20251002_123149_invoice_gulf-tech-invoice.pdf",
+        "po_file": "20251002_123149_po_sabic-po.pdf",
+        "result": {
+            "invoice_number": "GTS-2025-002",
+            "po_number": "SABIC-PO-2025-205",
+            "vendor_match": {
+                "match": true,
+                "invoice_vendor": "GulfT ech Systems",
+                "po_vendor": "GulfT ech Systems"
+            },
+            "total_amount_match": {
+                "match": true,
+                "invoice_total": "60599.25SAR",
+                "po_total": "60599.25SAR",
+                "difference": "0.00SAR"
+            },
+            "items_match": {
+                "match": true,
+                "details": "All items and prices match perfectly."
+            },
+            "overall_status": "APPROVED",
+            "summary": "All vendor, total amount, and item details match perfectly between the invoice and purchase order."
+        }
+    },
+    {
+        "id": 6,
+        "timestamp": "2025-10-02T12:41:12.375912",
+        "invoice_file": "20251002_124100_invoice_gulf-tech-invoice.pdf",
+        "po_file": "20251002_124100_po_aramco-po.pdf",
+        "result": {
+            "invoice_number": "GTS-2025-002",
+            "po_number": "ARAMCO-PO-2025-412",
+            "vendor_match": {
+                "match": false,
+                "invoice_vendor": "GulfT ech Systems",
+                "po_vendor": "Red Se a Logistics & T rading"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "60599.25SAR",
+                "po_total": "103718.50SAR",
+                "difference": "43119.25SAR"
+            },
+            "items_match": {
+                "match": false,
+                "details": "Mismatch found in item quantities, prices, and total amounts. The invoice and PO have different items and quantities."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "The vendor names, total amounts, and item details do not match between the invoice and the purchase order."
+        }
+    },
+    {
+        "id": 7,
+        "timestamp": "2025-10-02T12:41:45.974628",
+        "invoice_file": "20251002_124136_invoice_gulf-tech-invoice.pdf",
+        "po_file": "20251002_124136_po_almarai-po.pdf",
+        "result": {
+            "invoice_number": "GTS-2025-002",
+            "po_number": "ALMARAI-PO-2025-307",
+            "vendor_match": {
+                "match": false,
+                "invoice_vendor": "GulfT ech Systems",
+                "po_vendor": "Horizon Industrial Equ ipment"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "60599.25SAR",
+                "po_total": "80068.75SAR",
+                "difference": "19469.50SAR"
+            },
+            "items_match": {
+                "match": false,
+                "details": "Mismatch found in item quantities and prices. The invoice and PO have different items and quantities for several line items."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "The vendor names, total amounts, and line items do not match between the invoice and purchase order, requiring further review."
+        }
+    },
+    {
+        "id": 8,
+        "timestamp": "2025-10-02T12:42:10.485567",
+        "invoice_file": "20251002_124201_invoice_gulf-tech-invoice.pdf",
+        "po_file": "20251002_124201_po_sabic-po.pdf",
+        "result": {
+            "invoice_number": "GTS-2025-002",
+            "po_number": "SABIC-PO-2025-205",
+            "vendor_match": {
+                "match": true,
+                "invoice_vendor": "GulfT ech Systems",
+                "po_vendor": "GulfT ech Systems"
+            },
+            "total_amount_match": {
+                "match": true,
+                "invoice_total": "60599.25SAR",
+                "po_total": "60599.25SAR",
+                "difference": "0.00SAR"
+            },
+            "items_match": {
+                "match": true,
+                "details": "All items and prices match perfectly."
+            },
+            "overall_status": "APPROVED",
+            "summary": "All vendor details, total amounts, and line items match between the invoice and purchase order."
+        }
+    },
+    {
+        "id": 9,
+        "timestamp": "2025-10-02T12:42:42.389483",
+        "invoice_file": "20251002_124234_invoice_horizontal-invoice.pdf",
+        "po_file": "20251002_124234_po_aramco-po.pdf",
+        "result": {
+            "invoice_number": "HIE-2025-003",
+            "po_number": "ARAMCO-PO-2025-412",
+            "vendor_match": {
+                "match": false,
+                "invoice_vendor": "Horizon Industrial Equipment",
+                "po_vendor": "Red Sea Logistics & Trading"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "82225.00SAR",
+                "po_total": "103718.50SAR",
+                "difference": "21493.50SAR"
+            },
+            "items_match": {
+                "match": false,
+                "details": "Mismatch found in item quantities, prices, and total amounts. The invoice and PO have different items and quantities."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "The vendor names, total amounts, and line items do not match between the invoice and the purchase order, requiring further review."
+        }
+    },
+    {
+        "id": 10,
+        "timestamp": "2025-10-02T12:43:08.671397",
+        "invoice_file": "20251002_124258_invoice_horizontal-invoice.pdf",
+        "po_file": "20251002_124258_po_almarai-po.pdf",
+        "result": {
+            "invoice_number": "HIE-2025-003",
+            "po_number": "ALMARAI-PO-2025-307",
+            "vendor_match": {
+                "match": true,
+                "invoice_vendor": "Horizon Industrial Equipment",
+                "po_vendor": "Horizon Industrial Equipment"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "82225.00SAR",
+                "po_total": "80068.75SAR",
+                "difference": "2156.25SAR"
+            },
+            "items_match": {
+                "match": true,
+                "details": "All items and prices match perfectly."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "Vendor and item details match, but there is a discrepancy in the total amount of 2156.25SAR."
+        }
+    },
+    {
+        "id": 11,
+        "timestamp": "2025-10-02T12:43:49.121608",
+        "invoice_file": "20251002_124328_invoice_horizontal-invoice.pdf",
+        "po_file": "20251002_124328_po_sabic-po.pdf",
+        "result": {
+            "invoice_number": "HIE-2025-003",
+            "po_number": "SABIC-PO-2025-205",
+            "vendor_match": {
+                "match": false,
+                "invoice_vendor": "Horizon Industrial Equipment",
+                "po_vendor": "GulfTech Systems"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "82225.00SAR",
+                "po_total": "60599.25SAR",
+                "difference": "21625.75SAR"
+            },
+            "items_match": {
+                "match": false,
+                "details": "Mismatch found in item quantities, prices, and some items are missing in the PO."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "Vendor names, total amounts, and item details do not match; review is required."
+        }
+    },
+    {
+        "id": 12,
+        "timestamp": "2025-10-02T12:44:14.192610",
+        "invoice_file": "20251002_124406_invoice_redlogistics-invoice.pdf",
+        "po_file": "20251002_124406_po_almarai-po.pdf",
+        "result": {
+            "invoice_number": "RSL-2025-004",
+            "po_number": "ALMARAI-PO-2025-307",
+            "vendor_match": {
+                "match": false,
+                "invoice_vendor": "Red Sea Logistics & Trading",
+                "po_vendor": "Horizon Industrial Equipment"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "104638.50 SAR",
+                "po_total": "80068.75 SAR",
+                "difference": "24569.75 SAR"
+            },
+            "items_match": {
+                "match": false,
+                "details": "Mismatch found in item names, quantities, and prices. Only some items match between the invoice and the purchase order."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "Vendor names, total amounts, and item details do not match between the invoice and the purchase order, requiring further review."
+        }
+    },
+    {
+        "id": 13,
+        "timestamp": "2025-10-02T12:44:29.752974",
+        "invoice_file": "20251002_124421_invoice_redlogistics-invoice.pdf",
+        "po_file": "20251002_124421_po_aramco-po.pdf",
+        "result": {
+            "invoice_number": "RSL-2025-004",
+            "po_number": "ARAMCO-PO-2025-412",
+            "vendor_match": {
+                "match": true,
+                "invoice_vendor": "Red Sea Logistics & Trading",
+                "po_vendor": "Red Sea Logistics & Trading"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "104638.50 SAR",
+                "po_total": "103718.50 SAR",
+                "difference": "920.00 SAR"
+            },
+            "items_match": {
+                "match": true,
+                "details": "All items and prices match perfectly."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "Vendor and item details match, but there is a discrepancy in the total amount of 920.00 SAR."
+        }
+    }
+]
