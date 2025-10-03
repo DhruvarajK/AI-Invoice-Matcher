@@ -57,6 +57,12 @@ def save_upload_file(upload_file: UploadFile, destination: str) -> None:   # thi
         # closing the file 
         upload_file.file.close()
 
+
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def health_check():
+    return {"status": "ok"}
+
+
 def extract_text_from_image(file_path: str) -> str:
     # it uses tesseract to 'read' the text out of a picture
     try:
