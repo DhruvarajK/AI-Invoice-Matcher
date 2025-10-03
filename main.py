@@ -15,6 +15,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
 from pdf2image import convert_from_path
+import requests
+import re
 
 load_dotenv()
 
@@ -105,6 +107,29 @@ def get_text_from_file(file_path: str, filename: str) -> str:
         return extract_text_from_pdf(file_path)
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {extension}")
+
+def convert_currency_frankfurter(amount, from_currency, to_currency):
+    url = f'https://api.frankfurter.app/latest?amount={amount}&from={from_currency}&to={to_currency}'
+    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        converted_amount = data['rates'].get(to_currency)
+        if converted_amount:
+            return round(converted_amount, 2)
+        else:
+            return f"Error: {to_currency} is not a supported currency."
+    except requests.RequestException as e:
+        return f"Error: Unable to fetch exchange rates - {e}"
+
+def parse_amount(amount_str: str) -> float:
+    try:
+        # Remove any non-numeric characters except dots and commas
+        cleaned = re.sub(r'[^\d.,]', '', amount_str).replace(',', '')
+        return float(cleaned)
+    except ValueError:
+        return None
 
 def analyze_documents_with_ai(invoice_text: str, po_text: str) -> dict:
     # telling it exactly what to look for and how to format the answer
@@ -244,6 +269,41 @@ async def compare_documents(invoice_file: UploadFile = File(...), po_file: Uploa
 
     # sending the extracted text to the ai for analysis
     analysis_result = analyze_documents_with_ai(invoice_text, po_text)
+
+    # Post-processing for currency conversion if mismatch
+    if 'currency_match' in analysis_result and not analysis_result['currency_match']['match']:
+        inv_curr = analysis_result['currency_match']['invoice_currency']
+        po_curr = analysis_result['currency_match']['po_currency']
+        inv_total_str = analysis_result['total_amount_match']['invoice_total']
+        po_total_str = analysis_result['total_amount_match']['po_total']
+        
+        inv_amt = parse_amount(inv_total_str)
+        po_amt = parse_amount(po_total_str)
+        
+        if inv_amt is not None and po_amt is not None and inv_curr and po_curr:
+            converted_po = convert_currency_frankfurter(po_amt, po_curr, inv_curr)
+            if not isinstance(converted_po, str):  # Success
+                difference = abs(inv_amt - converted_po)
+                match_after = difference < 0.01  # Tolerance for floating point
+                analysis_result['currency_conversion'] = {
+                    "from_currency": po_curr,
+                    "to_currency": inv_curr,
+                    "original_po_total": f"{po_amt:.2f} {po_curr}",
+                    "converted_po_total": f"{converted_po:.2f} {inv_curr}",
+                    "difference_after_conversion": {
+                        "value": f"{difference:.2f}",
+                        "currency": inv_curr
+                    },
+                    "match_after_conversion": match_after
+                }
+            else:
+                analysis_result['currency_conversion'] = {
+                    "message": converted_po  # Error message
+                }
+        else:
+            analysis_result['currency_conversion'] = {
+                "message": "Unable to parse amounts or currencies for conversion."
+            }
 
     # save the result
     save_result(invoice_filename, po_filename, analysis_result)

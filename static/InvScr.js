@@ -167,6 +167,44 @@ function displayResults(data) {
             </div>`;
     };
 
+    let currencyConversionHtml = '';
+    if (data.currency_conversion) {
+        if (data.currency_conversion.message) {
+            currencyConversionHtml = `
+                <div class="bg-slate-50 p-4 rounded-lg flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </div>
+                    <div class="flex-grow">
+                        <p class="font-semibold text-slate-800">Currency Conversion</p>
+                        <div class="text-sm text-slate-600 mt-1">
+                            <p>${data.currency_conversion.message}</p>
+                        </div>
+                    </div>
+                </div>`;
+        } else {
+            const isMatchAfter = data.currency_conversion.match_after_conversion;
+            const iconAfter = isMatchAfter 
+                ? `<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>` 
+                : `<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+            currencyConversionHtml = `
+                <div class="bg-slate-50 p-4 rounded-lg flex items-start space-x-4">
+                    <div class="flex-shrink-0">${iconAfter}</div>
+                    <div class="flex-grow">
+                        <p class="font-semibold text-slate-800">Currency Conversion (PO to Invoice Currency)</p>
+                        <div class="text-sm text-slate-600 mt-1">
+                            <p><strong>From:</strong> ${data.currency_conversion.from_currency}</p>
+                            <p><strong>To:</strong> ${data.currency_conversion.to_currency}</p>
+                            <p><strong>Original PO Total:</strong> ${data.currency_conversion.original_po_total}</p>
+                            <p><strong>Converted PO Total:</strong> ${data.currency_conversion.converted_po_total}</p>
+                            <p><strong>Difference After Conversion:</strong> ${data.currency_conversion.difference_after_conversion.value} ${data.currency_conversion.difference_after_conversion.currency}</p>
+                        </div>
+                        <p class="text-xs text-amber-600 mt-2 italic">⚠︎ Conversion rates are indicative and may vary with market fluctuations.</p>
+                    </div>
+                </div>`;
+        }
+    }
+
     const html = `
         <div class="flex items-center p-5 rounded-lg bg-${currentStatus.color}-50 border border-${currentStatus.color}-200 mb-8">
             ${currentStatus.icon}
@@ -185,6 +223,7 @@ function displayResults(data) {
             </div>
             ${renderMatchItem(data.vendor_match, 'Vendor Match', data.vendor_match.invoice_vendor, data.vendor_match.po_vendor)}
             ${renderMatchItem(data.currency_match, 'Currency Match', data.currency_match.invoice_currency, data.currency_match.po_currency)}
+            ${currencyConversionHtml}
             ${renderMatchItem(data.total_amount_match, 'Total Amount Match', data.total_amount_match.invoice_total, data.total_amount_match.po_total, !data.total_amount_match.match ? `Difference: ${data.total_amount_match.difference.value} ${data.total_amount_match.difference.currency || ''}` : '')}
             ${renderMatchItem(data.items_match, 'Line Items Match', data.items_match.match ? 'All items match' : 'Mismatch found', '', data.items_match.details)}
         </div>
