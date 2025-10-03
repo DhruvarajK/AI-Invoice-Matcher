@@ -349,5 +349,166 @@
             "overall_status": "NEEDS REVIEW",
             "summary": "Vendor and item details match, but there is a discrepancy in the total amount of 920.00 SAR."
         }
+    },
+    {
+        "id": 14,
+        "timestamp": "2025-10-03T10:51:41.564587",
+        "invoice_file": "20251003_105130_invoice_sample-invoice.pdf",
+        "po_file": "20251003_105130_po_example purchase order.pdf",
+        "result": {
+            "invoice_number": "123100401",
+            "po_number": "123456",
+            "vendor_match": {
+                "match": false,
+                "invoice_vendor": "CPB Software (Germany) GmbH",
+                "po_vendor": "Tobii Dynavox"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "453.53",
+                "po_total": "2325.00",
+                "difference": "1871.47"
+            },
+            "items_match": {
+                "match": false,
+                "details": "No matching items found between the invoice and the purchase order."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "Vendor names, total amounts, and line items do not match between the invoice and the purchase order."
+        }
+    },
+    {
+        "id": 15,
+        "timestamp": "2025-10-03T10:56:43.546342",
+        "invoice_file": "20251003_105633_invoice_sample-invoice.pdf",
+        "po_file": "20251003_105633_po_example purchase order.pdf",
+        "result": {
+            "invoice_number": "123100401",
+            "po_number": "123456",
+            "vendor_match": {
+                "match": false,
+                "invoice_vendor": "CPB Software (Germany) GmbH",
+                "po_vendor": "Tobii Dynavox"
+            },
+            "currency_match": {
+                "match": false,
+                "invoice_currency": "EUR",
+                "po_currency": "USD"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "453.53",
+                "po_total": "2325.00",
+                "difference": "1871.47"
+            },
+            "items_match": {
+                "match": false,
+                "details": "No matching items found between the invoice and the purchase order."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "The vendor, currency, total amount, and items do not match between the invoice and the purchase order."
+        }
+    },
+    {
+        "id": 16,
+        "timestamp": "2025-10-03T11:03:24.902066",
+        "invoice_file": "20251003_110315_invoice_sample-invoice.pdf",
+        "po_file": "20251003_110315_po_example purchase order.pdf",
+        "result": {
+            "invoice_number": "123100401",
+            "po_number": "123456",
+            "vendor_match": {
+                "match": false,
+                "invoice_vendor": "CPB Software (Germany) GmbH",
+                "po_vendor": "Tobii Dynavox"
+            },
+            "currency_match": {
+                "match": false,
+                "invoice_currency": "EUR",
+                "po_currency": "USD"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "453.53",
+                "po_total": "2325.00",
+                "difference": "1871.47"
+            },
+            "items_match": {
+                "match": false,
+                "details": "No matching items found between the invoice and the purchase order."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "The vendor, currency, total amount, and items do not match between the invoice and the purchase order."
+        }
+    },
+    {
+        "id": 17,
+        "timestamp": "2025-10-03T11:09:50.167760",
+        "invoice_file": "20251003_110940_invoice_sample-invoice.pdf",
+        "po_file": "20251003_110940_po_example purchase order.pdf",
+        "result": {
+            "invoice_number": "123100401",
+            "po_number": "123456",
+            "vendor_match": {
+                "match": false,
+                "invoice_vendor": "CPB Software (Germany) GmbH",
+                "po_vendor": "Tobii Dynavox"
+            },
+            "currency_match": {
+                "match": false,
+                "invoice_currency": "EUR",
+                "po_currency": "USD"
+            },
+            "total_amount_match": {
+                "match": false,
+                "invoice_total": "453.53",
+                "po_total": "2325.00",
+                "difference": {
+                    "value": "Cannot calculate due to currency mismatch",
+                    "currency": "N/A"
+                }
+            },
+            "items_match": {
+                "match": false,
+                "details": "No matching items found between the invoice and purchase order."
+            },
+            "overall_status": "NEEDS REVIEW",
+            "summary": "Vendor names, currencies, total amounts, and items do not match between the invoice and purchase order."
+        }
+    },
+    {
+        "id": 18,
+        "timestamp": "2025-10-03T11:10:43.589045",
+        "invoice_file": "20251003_111036_invoice_gulf-tech-invoice.pdf",
+        "po_file": "20251003_111036_po_sabic-po.pdf",
+        "result": {
+            "invoice_number": "GTS-2025-002",
+            "po_number": "SABIC-PO-2025-205",
+            "vendor_match": {
+                "match": true,
+                "invoice_vendor": "GulfT ech Systems",
+                "po_vendor": "GulfT ech Systems"
+            },
+            "currency_match": {
+                "match": true,
+                "invoice_currency": "SAR",
+                "po_currency": "SAR"
+            },
+            "total_amount_match": {
+                "match": true,
+                "invoice_total": "60599.25",
+                "po_total": "60599.25",
+                "difference": {
+                    "value": "0.00",
+                    "currency": "SAR"
+                }
+            },
+            "items_match": {
+                "match": true,
+                "details": "All items and prices match perfectly."
+            },
+            "overall_status": "APPROVED",
+            "summary": "All vendor, currency, total amount, and item details match perfectly between the invoice and purchase order."
+        }
     }
 ]

@@ -2,7 +2,7 @@ import os
 import shutil
 import json
 from datetime import datetime
-from fastapi import FastAPI, File, UploadFile, HTTPException,Request
+from fastapi import FastAPI, File, UploadFile, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -14,6 +14,7 @@ import logging
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
+from pdf2image import convert_from_path
 
 load_dotenv()
 
@@ -21,7 +22,6 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 UPLOAD_FOLDER = "uploads"
 DATABASE_FILE = "database.json"
-
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -37,7 +37,6 @@ client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=OPENROUTER_API_KEY,
 )
-
 
 class ComparisonResult(BaseModel):
     status: str
@@ -70,12 +69,28 @@ def extract_text_from_pdf(file_path: str) -> str:
     # pulls text from a pdf file, but only if it's real text
     try:
         text = ""
+        num_pages = 0
         with open(file_path, "rb") as file:
             reader = PyPDF2.PdfReader(file)
+            num_pages = len(reader.pages)
             # loop through all the pages and grab the text from each one
-            for page in reader.pages:
-                text += page.extract_text() or ""
-        return text
+            for page_num in range(num_pages):
+                page_text = reader.pages[page_num].extract_text() or ""
+                text += page_text + "\n"
+        
+        if text.strip():
+            return text
+        else:
+            # fallback to OCR if no selectable text is found
+            logging.info(f"No selectable text extracted from PDF {file_path}, falling back to OCR.")
+            ocr_text = ""
+            for page_num in range(1, num_pages + 1):
+                # Convert one page at a time to save memory on low-end systems
+                images = convert_from_path(file_path, dpi=200, first_page=page_num, last_page=page_num)
+                if images:
+                    img = images[0]
+                    ocr_text += pytesseract.image_to_string(img) + "\n"
+            return ocr_text
     except Exception as e:
         logging.error(f"Error extracting text from PDF {file_path}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to extract text from PDF: {os.path.basename(file_path)}")
@@ -112,13 +127,15 @@ def analyze_documents_with_ai(invoice_text: str, po_text: str) -> dict:
         * Invoice Number (from invoice)
         * PO Number (from purchase order)
         * Vendor Name
-        * Total Amount
-        * A list of line items with their prices.
+        * Currency (e.g., USD, INR; from both invoice and PO)
+        * Total Amount (include currency symbol if present, but extract the numeric value separately if possible)
+        * A list of line items with their prices (include currency for each if specified).
 
     2.  **Compare the Information:**
         * Does the Vendor Name match?
-        * Does the Total Amount match?
-        * Do the line items (names and prices) match between the two documents?
+        * Do the Currencies match between the two documents?
+        * Does the Total Amount match (considering the currency; if currencies differ, amounts do not match)?
+        * Do the line items (names, prices, and currencies if specified) match between the two documents?
 
     3.  **Provide a JSON Output:** Your response MUST be in a valid JSON format. Do not add any text before or after the JSON block.
         The JSON should have the following structure:
@@ -130,11 +147,19 @@ def analyze_documents_with_ai(invoice_text: str, po_text: str) -> dict:
                 "invoice_vendor": "...",
                 "po_vendor": "..."
             }},
+            "currency_match": {{
+                "match": boolean,
+                "invoice_currency": "...",
+                "po_currency": "..."
+            }},
             "total_amount_match": {{
                 "match": boolean,
                 "invoice_total": "...",
                 "po_total": "...",
-                "difference": "..."
+                "difference": {{
+                    "value": "If currencies match: '0.00' if amounts match, else the absolute numerical difference (e.g., '5.50'); If currencies differ: 'Cannot calculate due to currency mismatch'",
+                    "currency": "The currency used for the difference (if applicable)"
+                }}
             }},
             "items_match": {{
                 "match": boolean,
@@ -185,13 +210,11 @@ def save_result(invoice_filename: str, po_filename: str, result: dict):
     except (IOError, json.JSONDecodeError) as e:
         logging.error(f"Error saving result to database: {e}")
 
-
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
 
 @app.post("/compare")
 async def compare_documents(invoice_file: UploadFile = File(...), po_file: UploadFile = File(...)):
@@ -227,7 +250,6 @@ async def compare_documents(invoice_file: UploadFile = File(...), po_file: Uploa
 
     # sending analysis back to the user
     return JSONResponse(content=analysis_result)
-
 
 @app.get("/history")
 async def get_history():

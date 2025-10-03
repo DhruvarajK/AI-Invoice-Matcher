@@ -184,7 +184,8 @@ function displayResults(data) {
                 </div>
             </div>
             ${renderMatchItem(data.vendor_match, 'Vendor Match', data.vendor_match.invoice_vendor, data.vendor_match.po_vendor)}
-            ${renderMatchItem(data.total_amount_match, 'Total Amount Match', data.total_amount_match.invoice_total, data.total_amount_match.po_total, !data.total_amount_match.match ? `Difference: ${data.total_amount_match.difference}` : '')}
+            ${renderMatchItem(data.currency_match, 'Currency Match', data.currency_match.invoice_currency, data.currency_match.po_currency)}
+            ${renderMatchItem(data.total_amount_match, 'Total Amount Match', data.total_amount_match.invoice_total, data.total_amount_match.po_total, !data.total_amount_match.match ? `Difference: ${data.total_amount_match.difference.value} ${data.total_amount_match.difference.currency || ''}` : '')}
             ${renderMatchItem(data.items_match, 'Line Items Match', data.items_match.match ? 'All items match' : 'Mismatch found', '', data.items_match.details)}
         </div>
     `;
