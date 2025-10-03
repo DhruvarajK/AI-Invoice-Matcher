@@ -243,7 +243,7 @@ async function loadHistory() {
 
         const historyHtml = `
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200">
+                <table id="history-table" class="min-w-full divide-y divide-slate-200">
                     <thead class="bg-slate-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
@@ -254,7 +254,7 @@ async function loadHistory() {
                     </thead>
                     <tbody class="bg-white divide-y divide-slate-200">
                         ${history.map(item => `
-                            <tr class="hover:bg-slate-50 transition-colors duration-200">
+                            <tr data-id="${item.id}" class="hover:bg-slate-50 transition-colors duration-200 cursor-pointer">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${new Date(item.timestamp).toLocaleString()}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
                                     <div class="font-medium truncate max-w-xs" title="${item.invoice_file}">${item.invoice_file.split('_').slice(2).join('_')}</div>
@@ -275,10 +275,105 @@ async function loadHistory() {
         `;
         historyContainer.innerHTML = historyHtml;
 
+        // Add click event listener to the table
+        const table = document.getElementById('history-table');
+        table.addEventListener('click', (e) => {
+            const tr = e.target.closest('tr');
+            if (!tr || tr.classList.contains('details-row')) return;
+
+            const id = parseInt(tr.dataset.id);
+            const item = history.find(h => h.id === id);
+            if (!item) return;
+
+            let detailsRow = tr.nextElementSibling;
+            if (detailsRow && detailsRow.classList.contains('details-row')) {
+                detailsRow.remove();
+            } else {
+                const formattedDetails = formatResult(item.result);
+                const detailsHtml = `
+                    <tr class="details-row">
+                        <td colspan="4" class="p-4 bg-slate-100">
+                            <div class="space-y-4 text-sm text-slate-700">${formattedDetails}</div>
+                        </td>
+                    </tr>
+                `;
+                tr.insertAdjacentHTML('afterend', detailsHtml);
+            }
+        });
+
     } catch (error) {
         // console.error('Failed to load history:', error);
         historyContainer.innerHTML = `<p class="text-red-500 text-center p-8">Could not load comparison history.</p>`;
     }
 }
 
+function formatResult(result) {
+    let html = '';
+
+    // Invoice and PO numbers
+    html += '<div class="grid grid-cols-2 gap-4">';
+    html += `<div><span class="font-medium">Invoice Number:</span> ${result.invoice_number || 'N/A'}</div>`;
+    html += `<div><span class="font-medium">PO Number:</span> ${result.po_number || 'N/A'}</div>`;
+    html += '</div>';
+
+    // Vendor match
+    const vendor = result.vendor_match || {};
+    html += '<div class="border-t pt-2">';
+    html += `<h4 class="font-semibold">Vendor Match: ${vendor.match ? 'Yes' : 'No'}</h4>`;
+    html += `<p>Invoice Vendor: ${vendor.invoice_vendor || 'N/A'}</p>`;
+    html += `<p>PO Vendor: ${vendor.po_vendor || 'N/A'}</p>`;
+    html += '</div>';
+
+    // Currency match
+    const currency = result.currency_match || {};
+    html += '<div class="border-t pt-2">';
+    html += `<h4 class="font-semibold">Currency Match: ${currency.match ? 'Yes' : 'No'}</h4>`;
+    html += `<p>Invoice Currency: ${currency.invoice_currency || 'N/A'}</p>`;
+    html += `<p>PO Currency: ${currency.po_currency || 'N/A'}</p>`;
+    html += '</div>';
+
+    // Total amount match
+    const total = result.total_amount_match || {};
+    html += '<div class="border-t pt-2">';
+    html += `<h4 class="font-semibold">Total Amount Match: ${total.match ? 'Yes' : 'No'}</h4>`;
+    html += `<p>Invoice Total: ${total.invoice_total || 'N/A'}</p>`;
+    html += `<p>PO Total: ${total.po_total || 'N/A'}</p>`;
+    const diff = total.difference || {};
+    html += `<p>Difference: ${diff.value || 'N/A'} ${diff.currency || ''}</p>`;
+    html += '</div>';
+
+    // Items match
+    const items = result.items_match || {};
+    html += '<div class="border-t pt-2">';
+    html += `<h4 class="font-semibold">Items Match: ${items.match ? 'Yes' : 'No'}</h4>`;
+    html += `<p>${items.details || 'N/A'}</p>`;
+    html += '</div>';
+
+    // Overall status and summary
+    html += '<div class="border-t pt-2">';
+    html += `<h4 class="font-semibold">Overall Status: ${result.overall_status || 'N/A'}</h4>`;
+    html += `<p>Summary: ${result.summary || 'N/A'}</p>`;
+    html += '</div>';
+
+    // Currency conversion if present
+    if (result.currency_conversion) {
+        const conv = result.currency_conversion;
+        html += '<div class="border-t pt-2">';
+        html += '<h4 class="font-semibold">Currency Conversion</h4>';
+        if (conv.message) {
+            html += `<p>${conv.message}</p>`;
+        } else {
+            html += `<p>From: ${conv.from_currency || 'N/A'}</p>`;
+            html += `<p>To: ${conv.to_currency || 'N/A'}</p>`;
+            html += `<p>Original PO Total: ${conv.original_po_total || 'N/A'}</p>`;
+            html += `<p>Converted PO Total: ${conv.converted_po_total || 'N/A'}</p>`;
+            const diff_after = conv.difference_after_conversion || {};
+            html += `<p>Difference After Conversion: ${diff_after.value || 'N/A'} ${diff_after.currency || ''}</p>`;
+            html += `<p>Match After Conversion: ${conv.match_after_conversion ? 'Yes' : 'No'}</p>`;
+        }
+        html += '</div>';
+    }
+
+    return html;
+}
 document.addEventListener('DOMContentLoaded', loadHistory);

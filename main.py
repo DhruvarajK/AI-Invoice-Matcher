@@ -17,22 +17,35 @@ from dotenv import load_dotenv
 from pdf2image import convert_from_path
 import requests
 import re
+import sqlite3
 
 load_dotenv()
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 UPLOAD_FOLDER = "uploads"
-DATABASE_FILE = "database.json"
+DATABASE_FILE = "database.db"
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 app = FastAPI()
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-if not os.path.exists(DATABASE_FILE):
-    with open(DATABASE_FILE, "w") as f:
-        json.dump([], f)
+
+# Create SQLite table if not exists
+conn = sqlite3.connect(DATABASE_FILE)
+cur = conn.cursor()
+cur.execute("""
+CREATE TABLE IF NOT EXISTS history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT,
+    invoice_file TEXT,
+    po_file TEXT,
+    result TEXT
+)
+""")
+conn.commit()
+conn.close()
 
 # setting up the connection to the ai model through openrouter
 client = OpenAI(
@@ -222,23 +235,17 @@ def analyze_documents_with_ai(invoice_text: str, po_text: str) -> dict:
         raise HTTPException(status_code=500, detail="Failed to analyze documents with AI.")
 
 def save_result(invoice_filename: str, po_filename: str, result: dict):
-    #  function to saves the models analysis into our json file
+    # function to save the model's analysis into our SQLite database
     try:
-        with open(DATABASE_FILE, "r+") as f:
-            db_data = json.load(f)
-            new_entry = {
-                "id": len(db_data) + 1,
-                "timestamp": datetime.now().isoformat(),
-                "invoice_file": invoice_filename,
-                "po_file": po_filename,
-                "result": result
-            }
-            # add the new entry to the list
-            db_data.append(new_entry)
-            # gotta go back to the start of the file to overwrite it with the new data
-            f.seek(0)
-            json.dump(db_data, f, indent=4)
-    except (IOError, json.JSONDecodeError) as e:
+        conn = sqlite3.connect(DATABASE_FILE)
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO history (timestamp, invoice_file, po_file, result) VALUES (?, ?, ?, ?)",
+            (datetime.now().isoformat(), invoice_filename, po_filename, json.dumps(result))
+        )
+        conn.commit()
+        conn.close()
+    except sqlite3.Error as e:
         logging.error(f"Error saving result to database: {e}")
 
 templates = Jinja2Templates(directory="templates")
@@ -320,11 +327,22 @@ async def compare_documents(invoice_file: UploadFile = File(...), po_file: Uploa
 @app.get("/history")
 async def get_history():
     try:
-        with open(DATABASE_FILE, "r") as f:
-            history_data = json.load(f)
-            # show the newest ones first
-            return JSONResponse(content=sorted(history_data, key=lambda x: x['timestamp'], reverse=True))
-    except (IOError, json.JSONDecodeError):
+        conn = sqlite3.connect(DATABASE_FILE)
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM history ORDER BY timestamp DESC")
+        rows = cur.fetchall()
+        history_data = []
+        for row in rows:
+            history_data.append({
+                "id": row[0],
+                "timestamp": row[1],
+                "invoice_file": row[2],
+                "po_file": row[3],
+                "result": json.loads(row[4])
+            })
+        conn.close()
+        return JSONResponse(content=history_data)
+    except (sqlite3.Error, json.JSONDecodeError):
         return JSONResponse(content=[], status_code=500)
     
 app.mount("/static", StaticFiles(directory="static"), name="static")
