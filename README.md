@@ -2,15 +2,12 @@
 
 A simple web tool that uses AI to automatically compare your invoices and purchase orders. Just upload an invoice and a PO (as a PDF or image), and it will tell you if they match.
 
----
 
 ## What's new
 
 - **Real-time currency conversion:**  
   If the AI detects that the invoice and PO use different currencies, the app will automatically attempt a live conversion (using the Frankfurter exchange rates API) to compare totals and report whether the amounts match after conversion.  
   Conversion results and a reconciliation object are added to the AI analysis output (see `"currency_conversion"` in the JSON response).
-
----
 
 **Install the Required Packages**
 
