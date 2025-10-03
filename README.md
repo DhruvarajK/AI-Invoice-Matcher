@@ -23,6 +23,8 @@ Pillow
 pytesseract
 PyPDF2
 python-dotenv
+pdf2image
+requests
 ```
 **Install Command:**
 ```Bash
