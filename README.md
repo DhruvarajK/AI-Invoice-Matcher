@@ -2,11 +2,6 @@
 
 A simple web tool that uses AI to automatically compare your invoices and purchase orders. Just upload an invoice and a PO (as a PDF or image), and it will tell you if they match.
 
-<p align="center">
-  <a href="https://ai-invoice-matcher-lzlo.onrender.com" target="_blank">
-    <img src="https://img.shields.io/badge/Launch%20App-%20Click%20Here-blue?style=for-the-badge" alt="Launch App">
-  </a>
-</p>
 
 ## What's new
 
